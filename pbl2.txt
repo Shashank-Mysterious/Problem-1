@@ -1,0 +1,57 @@
+clear
+clc
+close all
+
+prompt = 'number_of_forces: ';
+number_of_forces = str2double(input(prompt,'s'));
+k=0
+syms force [1 number_of_forces]
+syms theta [1 number_of_forces]
+
+for i = 1:number_of_forces
+    prompt = 'External force vector x coordinate: ';
+    External_force_x_coordinate(i) = str2double(input(prompt,'s'));
+    
+    prompt = 'Is force known (if value if known, input 1. if unknown, input 0): ';
+    tempvar = str2double(input(prompt,'s')); 
+if tempvar == 1 
+    k=k+1;
+    prompt = 'External force in newton: ';
+    Eq(k+number_of_forces+2) = force(i) == str2double(input(prompt,'s'));
+end
+
+    prompt = 'is theta known (if value if known, input 1. if unknown, input 0): ';
+    tempvar = str2double(input(prompt,'s'));
+
+    if tempvar == 1
+    k=k+1;
+    prompt = 'angle of External force: ';
+    Eq(k+number_of_forces+2) = theta(i) == str2double(input(prompt,'s'));
+    end
+    fprintf('\n')
+end
+
+sympref('FloatingPointOutput',true);
+sum_in_x = 0;
+sum_in_y = 0;
+
+for i = 1:number_of_forces
+    sum_in_x = sum_in_x+force(i)*cosd(theta(i));
+    sum_in_y = sum_in_y+force(i)*sind(theta(i));
+end
+Eq(1) = sum_in_x ==0;
+Eq(2) = sum_in_y ==0;
+
+for i = 1:number_of_forces
+    sum_in_moment = 0;
+    for j=1:number_of_forces
+    if i==j
+    else
+    sum_in_moment = sum_in_moment + (External_force_x_coordinate(j)-External_force_x_coordinate(i))*force(j)*sind(theta(j));  
+    end
+    end
+    Eq(i+2) = sum_in_moment == 0;
+end
+
+ans1 = solve(Eq,[force theta])
+

@@ -1,0 +1,72 @@
+clear
+clc
+close all
+%warning("off",all)
+
+%Taking Input from the user
+prompt= 'Number of products to be Input : ';
+number_of_inputs = input(prompt,'s');
+number_of_inputs = str2double(number_of_inputs);
+
+for i=1:number_of_inputs
+prompt= sprintf('Please input Name of product %d:',i);
+name{i} = input(prompt,'s');
+
+prompt= sprintf('Please input Quantity of product %d:',i);
+Quantity{i} = input(prompt,'s');
+
+prompt= sprintf('Please input cost of product %d:',i);
+cost{i} = input(prompt,'s');
+
+prompt= sprintf('Please input Ordering costs of product %d:',i);
+Ordering_costs{i} = input(prompt,'s');
+
+prompt= sprintf('Please input Interest rate charged per unit per year of product %d (in percentage):',i);
+Interest_rate{i} = input(prompt,'s');
+
+prompt= sprintf('Please input Number of production runs per year charged per unit per year of product %d:',i);
+Number_of_production_runs{i} = input(prompt,'s');
+
+prompt= sprintf('Please input date of product %d when it enters the warehouse(dd/mm/yyyy):',i);
+date{i} = input(prompt,'s');
+date_in_matlab_format = datenum(date,'dd/mm/yyyy');
+end
+
+try
+Quantity = str2double(Quantity);
+cost = str2double(cost);
+Ordering_costs = str2double(Ordering_costs);
+Interest_rate = str2double(Interest_rate);
+Number_of_production_runs = str2double(Number_of_production_runs);
+catch
+    prompt= 'please check the input data';
+end
+
+%Calculations
+for i=1:number_of_inputs
+Demand(i) = Quantity(i)*Number_of_production_runs(i);
+carrying_costs(i) = Interest_rate(i)*cost(i)/100;
+EOQ(i) = ceil(sqrt(2*Demand(i)*Ordering_costs(i)/carrying_costs(i)));
+Time_interval_between_two_orders(i) = floor(365*EOQ(i)/Demand(i));
+end
+
+for i=1:number_of_inputs
+    clearvars Ordering_dates_subset
+    for j = 1:floor(365/Time_interval_between_two_orders(i))
+        Ordering_dates_subset{j} = datestr(datetime(date_in_matlab_format(i) + Time_interval_between_two_orders(i)*j,'ConvertFrom','datenum'));
+    end
+    Ordering_dates{i} = Ordering_dates_subset;
+end
+
+cd 'C:\Users\mddes\Desktop'
+%Output
+Table1 = table(name',Quantity',cost',date',Ordering_costs',carrying_costs',Interest_rate',Number_of_production_runs',Demand',EOQ',Time_interval_between_two_orders','VariableNames',{'Name of product','Quantity','Unit Cost','Date when it enters the warehouse','Ordering costs per unit per year','carrying costs per unit per year','Interest rate charged per unit per year','Number of production runs per year','Demand','EOQ','Time interval between two orders'})
+for i=1:number_of_inputs
+    table2 = cell2table(Ordering_dates{i}')
+    writetable(table2,'output.xlsx','Sheet',i+1)
+end
+
+writetable(Table1,'output.xlsx',Sheet=1)
+
+
+
